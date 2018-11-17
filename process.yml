@@ -1,0 +1,8 @@
+apps:
+  - script: ./dist/main.js
+    name: 'meme-gen-crawler'
+    watch: true
+    wait_ready: true
+    listen_timeout: 10000
+    env:
+      NODE_ENV: production
