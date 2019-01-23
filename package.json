@@ -1,19 +1,25 @@
 {
   "name": "meme-gen-crawler",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "",
-  "main": "./dist/cli",
+  "bin": {
+    "screenshot": "./dist/cli.js"
+  },
+  "main": "",
   "scripts": {
-    "start": "cross-env NODE_ENV=development ts-node -r tsconfig-paths/register src/main.ts",
+    "start": "cross-env NODE_ENV=development ts-node -r tsconfig-paths/register src/cli.ts",
     "start:dev": "nodemon",
     "start:debug": "nodemon --config nodemon-debug.json",
-    "build": "tsc"
+    "build": "cross-env NODE_ENV=production tsc"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "puppeteer": "^1.11.0"
+    "fs-extra": "^7.0.1",
+    "puppeteer": "^1.11.0",
+    "signale": "^1.3.0",
+    "yargs": "^12.0.5"
   },
   "devDependencies": {
     "@types/node": "^10.12.18",
