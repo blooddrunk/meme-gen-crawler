@@ -1,32 +1,25 @@
 import * as puppeteer from 'puppeteer';
+import * as devices from 'puppeteer/DeviceDescriptors';
+const phone = devices['iPhone X'];
 
 const scrape = async () => {
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({ headless: true });
+
   const page = await browser.newPage();
-  await page.goto('http://books.toscrape.com/', {
-    waitUntil: 'domcontentloaded',
+  await page.emulate(phone);
+  await page.goto('http://localhost:3101/', {
+    waitUntil: 'networkidle2',
   });
 
-  // Scrape
-  await page.click(
-    '#default > div.container-fluid.page > div > div > div > section > div:nth-child(2) > ol > li:nth-child(1) > article > div.image_container > a > img'
-  );
+  await page.waitFor(2000);
 
-  const result = await page.evaluate(() => {
-    const title = document.querySelector('h1').innerText;
-    const price = document.querySelector<HTMLParagraphElement>('.price_color')
-      .innerText;
-
-    return {
-      price,
-      title,
-    };
+  await page.screenshot({
+    type: 'jpeg',
+    path: 'nice-image.jpg',
+    // fullPage: true,
   });
 
-  browser.close();
-  return result;
+  await browser.close();
 };
 
-scrape().then(value => {
-  console.log(value); // Success!
-});
+scrape();

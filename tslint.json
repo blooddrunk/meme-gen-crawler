@@ -3,6 +3,7 @@
   "rules": {
     "no-console": {
       "severity": "warning"
-    }
+    },
+    "object-literal-sort-keys": false
   }
 }
