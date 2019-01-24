@@ -15,7 +15,7 @@ const scrape = async () => {
 
   const bodyHandle = await page.$('body');
   const { width, height } = await bodyHandle.boundingBox();
-  const screenshot = await page.screenshot({
+  await page.screenshot({
     clip: {
       x: 0,
       y: 0,
