@@ -13,11 +13,27 @@ const scrape = async () => {
 
   await page.waitFor(2000);
 
-  await page.screenshot({
+  const bodyHandle = await page.$('body');
+  const { width, height } = await bodyHandle.boundingBox();
+  const screenshot = await page.screenshot({
+    clip: {
+      x: 0,
+      y: 0,
+      width,
+      height,
+    },
     type: 'jpeg',
     path: 'nice-image.jpg',
-    fullPage: true,
+    fullPage: false,
   });
+
+  await bodyHandle.dispose();
+
+  // await page.screenshot({
+  //   type: 'jpeg',
+  //   path: 'nice-image.jpg',
+  //   fullPage: true,
+  // });
 
   await browser.close();
 };
