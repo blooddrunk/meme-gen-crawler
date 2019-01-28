@@ -5,6 +5,7 @@
       "severity": "warning"
     },
     "object-literal-sort-keys": false,
-    "interface-name": false
+    "interface-name": false,
+    "ordered-imports": false
   }
 }

@@ -45,13 +45,13 @@ export const args = yargs
         default: true,
         alias: 'v',
       })
-      .option('fullscreen', {
-        describe: 'fullscreen screenshot',
-        type: 'boolean',
-        demandOption: false,
-        default: true,
-        alias: 'f',
-      })
+      // .option('fullscreen', {
+      //   describe: 'fullscreen screenshot',
+      //   type: 'boolean',
+      //   demandOption: false,
+      //   default: true,
+      //   alias: 'f',
+      // })
       .option('device', {
         describe:
           'Key of device descriptors, will be ignored if both `viewport-width` and `viewport-height` are provided, see https://github.com/GoogleChrome/puppeteer/blob/master/DeviceDescriptors.js for available devices',
