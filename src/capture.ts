@@ -55,6 +55,7 @@ export const takeScreenshot = async ({
   verbose,
   // fullscreen,
   output,
+  temp,
   timeout,
   device,
   vw,
@@ -135,8 +136,16 @@ export const takeScreenshot = async ({
 
   const fileDirectory = path.dirname(output);
   const fileName = path.basename(output);
-  const tempDirectory = path.join(
-    fileDirectory,
+
+  let tempDirectory;
+  if (temp === 'out') {
+    tempDirectory = fileDirectory;
+  } else {
+    tempDirectory = path.dirname(temp);
+  }
+
+  tempDirectory = path.join(
+    tempDirectory,
     crypto
       .createHash('md5')
       .update(`${Date.now()}-${fileName}`)

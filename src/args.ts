@@ -29,6 +29,14 @@ export const args = yargs
         default: './screenshot.jpg',
         alias: ['output', 'o'],
       })
+      .option('temp-directory', {
+        describe:
+          'The directory where to save screenshot slices temporarily, defaults to current directory, the string `out` represents the same as `output-file`',
+        type: 'string',
+        default: './',
+        demandOption: true,
+        alias: ['temp', 't'],
+      })
       .option('timeout', {
         describe:
           'The amount of time in milliseconds to wait for the page to load completly',
