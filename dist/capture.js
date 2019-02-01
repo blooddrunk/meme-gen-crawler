@@ -8,6 +8,8 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 const signale = require("signale");
 const difference_in_milliseconds_1 = require("date-fns/difference_in_milliseconds");
+const imagemin = require("imagemin");
+const imageminJpegtran = require("imagemin-jpegtran");
 const gm = GM();
 const client_1 = require("./client");
 const isDev = process.env.NODE_ENV === 'development';
@@ -29,7 +31,7 @@ const logProgress = (slices, index) => {
     const percentage = Math.ceil((++index / slices.length) * 100);
     signale.pending(`Capturing slice ${index} of ${slices.length} - ${percentage}%`);
 };
-exports.takeScreenshot = async ({ url, verbose, fullscreen, output, timeout, device, vw, vh, }) => {
+exports.takeScreenshot = async ({ url, verbose, output, temp, force, timeout, device, vw, vh, }) => {
     const startTime = new Date();
     const browser = await puppeteer.launch({
         headless: !isDev,
@@ -37,7 +39,7 @@ exports.takeScreenshot = async ({ url, verbose, fullscreen, output, timeout, dev
     });
     const page = await browser.newPage();
     if (verbose) {
-        signale.watch(`Start loading page ${url}`);
+        signale.watch(`Start loading page ${url}...`);
     }
     if (vw && vh) {
         await page.setViewport({ width: vw, height: vh });
@@ -79,7 +81,14 @@ exports.takeScreenshot = async ({ url, verbose, fullscreen, output, timeout, dev
     }
     const fileDirectory = path.dirname(output);
     const fileName = path.basename(output);
-    const tempDirectory = path.join(fileDirectory, crypto
+    let tempDirectory;
+    if (temp === 'out') {
+        tempDirectory = fileDirectory;
+    }
+    else {
+        tempDirectory = path.dirname(temp);
+    }
+    tempDirectory = path.join(tempDirectory, crypto
         .createHash('md5')
         .update(`${Date.now()}-${fileName}`)
         .digest('hex'));
@@ -101,19 +110,34 @@ exports.takeScreenshot = async ({ url, verbose, fullscreen, output, timeout, dev
         });
         gm.append(slicePath);
     }
+    const rawFile = `${tempDirectory}/${fileName}`;
     if (verbose) {
         signale.complete(`All ${slices.length} slice(s) created successfully`);
-        signale.watch(`saving screenshot to file ${output}`);
+        signale.watch(`Saving screenshot to ${rawFile}...`);
     }
     await browser.close();
-    await gm.write(output, err => {
-        fs.removeSync(tempDirectory);
+    await gm.write(rawFile, err => {
         if (err) {
+            fs.removeSync(tempDirectory);
             fs.removeSync(output);
             throw err;
         }
-        const totalTime = difference_in_milliseconds_1.default(new Date(), startTime);
-        signale.success(`Finished in ${totalTime} milliseconds`);
     });
+    if (verbose) {
+        signale.success(`Screenshot taken successfully`);
+        signale.watch(`Start optimizing...`);
+    }
+    try {
+        await imagemin([rawFile], output, { plugins: [imageminJpegtran()] });
+    }
+    catch (error) {
+        signale.error(`Optimization failed, fallback to original screenshot`);
+        fs.moveSync(rawFile, output, { overwrite: force });
+    }
+    finally {
+        fs.removeSync(tempDirectory);
+    }
+    const totalTime = difference_in_milliseconds_1.default(new Date(), startTime);
+    signale.success(`Finished in ${totalTime} milliseconds`);
 };
 //# sourceMappingURL=capture.js.map

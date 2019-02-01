@@ -35,7 +35,13 @@ export const args = yargs
         type: 'string',
         default: './',
         demandOption: true,
-        alias: ['temp', 't'],
+        alias: ['temp'],
+      })
+      .option('force', {
+        describe: 'Overwrite file of same name if there is any',
+        type: 'boolean',
+        default: true,
+        alias: ['f'],
       })
       .option('timeout', {
         describe:

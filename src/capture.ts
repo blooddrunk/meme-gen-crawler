@@ -5,17 +5,24 @@ import * as GM from 'gm';
 import * as path from 'path';
 import * as puppeteer from 'puppeteer';
 import * as signale from 'signale';
-import differenceInMilliseconds from 'date-fns/difference_in_milliseconds';
+import { differenceInMilliseconds } from 'date-fns';
+import * as imagemin from 'imagemin';
+// import * as imageminJpegtran from 'imagemin-jpegtran';
+import * as imageminJpegoptim from 'imagemin-jpegoptim';
+import * as imageminJpegRecompress from 'imagemin-jpeg-recompress';
 
 const gm = GM();
 
 import { calculatePageHeight } from './client';
+import { Z_FIXED } from 'zlib';
 
 interface Args {
   url: string;
   verbose: boolean;
   fullscreen: boolean;
   output: string;
+  temp: string;
+  force: boolean;
   timeout: number;
   device: string;
   vw: number;
@@ -56,6 +63,7 @@ export const takeScreenshot = async ({
   // fullscreen,
   output,
   temp,
+  force,
   timeout,
   device,
   vw,
@@ -85,7 +93,7 @@ export const takeScreenshot = async ({
   // await bodyHandle.dispose();
 
   if (verbose) {
-    signale.watch(`Start loading page ${url}`);
+    signale.watch(`Start loading page ${url}...`);
   }
 
   if (vw && vh) {
@@ -174,21 +182,50 @@ export const takeScreenshot = async ({
     gm.append(slicePath);
   }
 
+  const rawFile = `${tempDirectory}/${fileName}`;
+
   if (verbose) {
     signale.complete(`All ${slices.length} slice(s) created successfully`);
 
-    signale.watch(`saving screenshot to file ${output}`);
+    signale.watch(`Saving screenshot to ${rawFile}...`);
   }
 
   await browser.close();
 
-  await gm.write(output, err => {
-    fs.removeSync(tempDirectory);
+  // try {
+  //   await gm.minify(10);
+  // } catch (error) {
+  //   signale.error(`Optimization failed, fallback to original screenshot`);
+  // }
 
+  gm.write(rawFile, async err => {
     if (err) {
       fs.removeSync(output);
+      fs.removeSync(tempDirectory);
       throw err;
     }
+
+    if (verbose) {
+      signale.success(`Screenshot taken successfully`);
+      signale.watch(`Start optimizing to ${output}...`);
+    }
+
+    try {
+      await imagemin([rawFile], fileDirectory, {
+        plugins: [
+          imageminJpegoptim(),
+          imageminJpegRecompress({
+            accurate: true,
+            quality: 'high',
+          }),
+        ],
+      });
+    } catch (error) {
+      signale.error(`Optimization failed, fallback to original screenshot`);
+      fs.moveSync(rawFile, fileDirectory, { overwrite: force });
+    }
+
+    fs.removeSync(tempDirectory);
 
     const totalTime = differenceInMilliseconds(new Date(), startTime);
 

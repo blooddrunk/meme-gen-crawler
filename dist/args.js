@@ -23,6 +23,19 @@ exports.args = yargs
     default: './screenshot.jpg',
     alias: ['output', 'o'],
 })
+    .option('temp-directory', {
+    describe: 'The directory where to save screenshot slices temporarily, defaults to current directory, the string `out` represents the same as `output-file`',
+    type: 'string',
+    default: './',
+    demandOption: true,
+    alias: ['temp'],
+})
+    .option('force', {
+    describe: 'Overwrite file of same name if there is any',
+    type: 'boolean',
+    default: true,
+    alias: ['f'],
+})
     .option('timeout', {
     describe: 'The amount of time in milliseconds to wait for the page to load completly',
     type: 'number',
@@ -37,13 +50,6 @@ exports.args = yargs
     demandOption: false,
     default: true,
     alias: 'v',
-})
-    .option('fullscreen', {
-    describe: 'fullscreen screenshot',
-    type: 'boolean',
-    demandOption: false,
-    default: true,
-    alias: 'f',
 })
     .option('device', {
     describe: 'Key of device descriptors, will be ignored if both `viewport-width` and `viewport-height` are provided, see https://github.com/GoogleChrome/puppeteer/blob/master/DeviceDescriptors.js for available devices',
