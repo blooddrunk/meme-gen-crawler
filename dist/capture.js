@@ -7,9 +7,10 @@ const GM = require("gm");
 const path = require("path");
 const puppeteer = require("puppeteer");
 const signale = require("signale");
-const difference_in_milliseconds_1 = require("date-fns/difference_in_milliseconds");
+const date_fns_1 = require("date-fns");
 const imagemin = require("imagemin");
-const imageminJpegtran = require("imagemin-jpegtran");
+const imageminJpegoptim = require("imagemin-jpegoptim");
+const imageminJpegRecompress = require("imagemin-jpeg-recompress");
 const gm = GM();
 const client_1 = require("./client");
 const isDev = process.env.NODE_ENV === 'development';
@@ -116,28 +117,34 @@ exports.takeScreenshot = async ({ url, verbose, output, temp, force, timeout, de
         signale.watch(`Saving screenshot to ${rawFile}...`);
     }
     await browser.close();
-    await gm.write(rawFile, err => {
+    gm.write(rawFile, async (err) => {
         if (err) {
-            fs.removeSync(tempDirectory);
             fs.removeSync(output);
+            fs.removeSync(tempDirectory);
             throw err;
         }
-    });
-    if (verbose) {
-        signale.success(`Screenshot taken successfully`);
-        signale.watch(`Start optimizing...`);
-    }
-    try {
-        await imagemin([rawFile], output, { plugins: [imageminJpegtran()] });
-    }
-    catch (error) {
-        signale.error(`Optimization failed, fallback to original screenshot`);
-        fs.moveSync(rawFile, output, { overwrite: force });
-    }
-    finally {
+        if (verbose) {
+            signale.success(`Screenshot taken successfully`);
+            signale.watch(`Start optimizing to ${output}...`);
+        }
+        try {
+            await imagemin([rawFile], fileDirectory, {
+                plugins: [
+                    imageminJpegoptim(),
+                    imageminJpegRecompress({
+                        accurate: true,
+                        quality: 'high',
+                    }),
+                ],
+            });
+        }
+        catch (error) {
+            signale.error(`Optimization failed, fallback to original screenshot`);
+            fs.moveSync(rawFile, fileDirectory, { overwrite: force });
+        }
         fs.removeSync(tempDirectory);
-    }
-    const totalTime = difference_in_milliseconds_1.default(new Date(), startTime);
-    signale.success(`Finished in ${totalTime} milliseconds`);
+        const totalTime = date_fns_1.differenceInMilliseconds(new Date(), startTime);
+        signale.success(`Finished in ${totalTime} milliseconds`);
+    });
 };
 //# sourceMappingURL=capture.js.map
