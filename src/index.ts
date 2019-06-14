@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as signale from 'signale';
 import { args } from './args';
 import { takeScreenshot } from './capture';
