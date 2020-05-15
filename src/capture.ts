@@ -57,6 +57,25 @@ const logProgress = (slices, index) => {
   );
 };
 
+const autoScroll = async (page: puppeteer.Page) => {
+  await page.evaluate(async () => {
+    await new Promise((resolve, reject) => {
+      var totalHeight = 0;
+      var distance = 100;
+      var timer = setInterval(() => {
+        var scrollHeight = document.body.scrollHeight;
+        window.scrollBy(0, distance);
+        totalHeight += distance;
+
+        if (totalHeight >= scrollHeight) {
+          clearInterval(timer);
+          resolve();
+        }
+      }, 100);
+    });
+  });
+};
+
 export const takeScreenshot = async ({
   url,
   verbose,
@@ -125,7 +144,11 @@ export const takeScreenshot = async ({
     timeout,
   });
 
-  await page.waitFor(2000);
+  await page.waitFor(15000);
+
+  await autoScroll(page);
+
+  await page.waitFor(5000);
 
   if (verbose) {
     signale.success('Page loaded successfully');
@@ -154,10 +177,7 @@ export const takeScreenshot = async ({
 
   tempDirectory = path.join(
     tempDirectory,
-    crypto
-      .createHash('md5')
-      .update(`${Date.now()}-${fileName}`)
-      .digest('hex')
+    crypto.createHash('md5').update(`${Date.now()}-${fileName}`).digest('hex')
   );
 
   fs.mkdirSync(tempDirectory);
@@ -198,7 +218,7 @@ export const takeScreenshot = async ({
   //   signale.error(`Optimization failed, fallback to original screenshot`);
   // }
 
-  gm.write(rawFile, async err => {
+  gm.write(rawFile, async (err) => {
     if (err) {
       fs.removeSync(output);
       fs.removeSync(tempDirectory);
